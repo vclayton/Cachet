@@ -11,7 +11,7 @@
 
 namespace CachetHQ\Cachet\Http\Controllers\Api;
 
-use CachetHQ\Cachet\Bus\Commands\ComponentGroup\AddComponentGroupCommand;
+use CachetHQ\Cachet\Bus\Commands\ComponentGroup\CreateComponentGroupCommand;
 use CachetHQ\Cachet\Bus\Commands\ComponentGroup\RemoveComponentGroupCommand;
 use CachetHQ\Cachet\Bus\Commands\ComponentGroup\UpdateComponentGroupCommand;
 use CachetHQ\Cachet\Models\ComponentGroup;
@@ -26,7 +26,7 @@ use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
  *
  * @author James Brooks <james@alt-three.com>
  * @author Graham Campbell <graham@alt-three.com>
- * @author Joe Cohen <joe@alt-three.com>
+ * @author Joseph Cohen <joe@alt-three.com>
  */
 class ComponentGroupController extends AbstractApiController
 {
@@ -52,7 +52,7 @@ class ComponentGroupController extends AbstractApiController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getGroups()
+    public function index()
     {
         $groups = ComponentGroup::query();
         if (!$this->guard->check()) {
@@ -62,7 +62,7 @@ class ComponentGroupController extends AbstractApiController
         $groups->search(Binput::except(['sort', 'order', 'per_page']));
 
         if ($sortBy = Binput::get('sort')) {
-            $direction = Binput::has('order') && Binput::get('order') == 'desc';
+            $direction = Binput::get('order', 'asc');
 
             $groups->sort($sortBy, $direction);
         }
@@ -79,7 +79,7 @@ class ComponentGroupController extends AbstractApiController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getGroup(ComponentGroup $group)
+    public function show(ComponentGroup $group)
     {
         return $this->item($group);
     }
@@ -89,10 +89,10 @@ class ComponentGroupController extends AbstractApiController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function postGroups()
+    public function store()
     {
         try {
-            $group = dispatch(new AddComponentGroupCommand(
+            $group = dispatch(new CreateComponentGroupCommand(
                 Binput::get('name'),
                 Binput::get('order', 0),
                 Binput::get('collapsed', 0),
@@ -112,7 +112,7 @@ class ComponentGroupController extends AbstractApiController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function putGroup(ComponentGroup $group)
+    public function update(ComponentGroup $group)
     {
         try {
             $group = dispatch(new UpdateComponentGroupCommand(
@@ -136,7 +136,7 @@ class ComponentGroupController extends AbstractApiController
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function deleteGroup(ComponentGroup $group)
+    public function destroy(ComponentGroup $group)
     {
         dispatch(new RemoveComponentGroupCommand($group));
 
